@@ -23,15 +23,36 @@ def read_health():
     return {"status": "ok"}
 
 @app.get("/tasks")
-def get_tasks():
-    return tasks
+def get_tasks(search: str = None, done: bool = None):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    query = "SELECT * FROM tasks"
+    conditions = []
+    params = []
+    if search is not None:
+        conditions.append("title LIKE ?")
+        params.append(f"%$search%")
+    if done is not None:
+        conditions.append("done = ?")
+        params.append(1 if done else 0)
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
+    query += " ORDER BY title ASC"
+    cursor.execute(query, params)
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
 
 @app.get("/tasks/{task_id}")
 def get_task(task_id: int):
-    for task in tasks:
-        if task["id"] == task_id:
-            return task
-    raise HTTPException(status_code=404, detail="Task not found")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return row
 
 class TaskCreate(BaseModel):
     title: str
