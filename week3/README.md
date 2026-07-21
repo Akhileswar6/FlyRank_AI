@@ -85,7 +85,7 @@ The database is stored in a file named `tasks.db` within the `week3` directory. 
 ### Database Screenshot
 Here is a view of our tasks directly from DB Browser for SQLite:
 
-![alt text](image-1.png)
+![alt text](images/image.png)
 
 
 ### Example SQL Query
