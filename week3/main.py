@@ -61,8 +61,14 @@ class TaskCreate(BaseModel):
 def create_task(task: TaskCreate):
     if task.title.strip() == "":
         raise HTTPException(status_code=400, detail="Title is required")
-    new_task = {"id": len(tasks) + 1, "title": task.title, "done": False}
-    tasks.append(new_task)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO tasks (title, done) VALUES (?, ?)", (task.title, 0))
+    conn.commit()
+    task_id = cursor.lastrowid
+    cursor.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+    new_task = cursor.fetchone()
+    conn.close()
     return new_task
 
 @app.put("/tasks/{task_id}")
