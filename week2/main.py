@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from data import tasks
 
 app = FastAPI()
 
@@ -23,4 +24,15 @@ def read_health():
 
 
 
+@app.get("/tasks")
+def get_tasks():
+    return tasks
 
+
+@app.get("/tasks/{task_id}")
+def get_task(task_id: int):
+    for task in tasks:
+        if task["id"] == task_id:
+            return task
+        
+    raise HTTPException(status_code=404, detail="Task not found")        
