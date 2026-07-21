@@ -4,12 +4,6 @@ from database import init_db, get_db_connection
 
 app = FastAPI()
 
-tasks = [
-    {"id": 1, "title": "Buy groceries", "done": False},
-    {"id": 2, "title": "Finish assignment", "done": False},
-    {"id": 3, "title": "Clean the room", "done": True}
-]
-
 @app.on_event("startup")
 def startup_event():
     init_db()
@@ -73,16 +67,43 @@ def create_task(task: TaskCreate):
 
 @app.put("/tasks/{task_id}")
 def update_task(task_id: int, task: TaskCreate):
-    for t in tasks:
-        if t["id"] == task_id:
-            t["title"] = task.title
-            return t
-    raise HTTPException(status_code=404, detail="Task not found")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+    if cursor.fetchone() is None:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Task not found")
+    cursor.execute("UPDATE tasks SET title = ? WHERE id = ?", (task.title, task_id))
+    conn.commit()
+    cursor.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+    updated_task = cursor.fetchone()
+    conn.close()
+    return updated_task
 
 @app.delete("/tasks/{task_id}", status_code=204)
 def delete_task(task_id: int):
-    for index, task in enumerate(tasks):
-        if task["id"] == task_id:
-            tasks.pop(index)
-            return
-    raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+    if cursor.fetchone() is None:
+        conn.close()
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+    cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+    conn.commit()
+    conn.close()
+    return None
+
+@app.get("/stats")
+def get_stats():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) as count FROM tasks")
+    total_tasks = cursor.fetchone()["count"]
+    cursor.execute("SELECT COUNT(*) as count FROM tasks WHERE done = 1")
+    completed_tasks = cursor.fetchone()["count"]
+    conn.close()
+    return {
+        "total": total_tasks,
+        "completed": completed_tasks,
+        "pending": total_tasks - completed_tasks
+    }
