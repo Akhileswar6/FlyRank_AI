@@ -5,9 +5,9 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
-@app.get("/")
-def home():
-    return {"message": "Hello World"}
+# @app.get("/")
+# def home():
+#     return {"message": "Hello World"}
 
 
 @app.get("/")
@@ -78,3 +78,5 @@ def delete_task(task_id: int):
         status_code=404,
         detail=f"Task {task_id} not found"
     )
+
+
