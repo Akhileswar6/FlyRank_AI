@@ -24,11 +24,11 @@ def get_tasks(search: str = None, done: bool = None):
     conditions = []
     params = []
     if search is not None:
-        conditions.append("title LIKE ?")
-        params.append(f"%$search%")
+        conditions.append("title ILIKE %s")
+        params.append(f"%{search}%")
     if done is not None:
-        conditions.append("done = ?")
-        params.append(1 if done else 0)
+        conditions.append("done = %s")
+        params.append(True if done else False)
     if conditions:
         query += " WHERE " + " AND ".join(conditions)
     query += " ORDER BY title ASC"
@@ -41,7 +41,7 @@ def get_tasks(search: str = None, done: bool = None):
 def get_task(task_id: int):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+    cursor.execute("SELECT * FROM tasks WHERE id = %s", (task_id,))
     row = cursor.fetchone()
     conn.close()
     if row is None:
