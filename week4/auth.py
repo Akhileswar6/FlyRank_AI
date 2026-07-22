@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from schemas import UserSignup, UserLogin
 from supabase_client import supabase
+from dependencies import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -44,3 +45,11 @@ def login(user: UserLogin):
             status_code=401,
             detail="Invalid email or password"
         )
+
+@router.post("/logout", status_code=204)
+def logout(user = Depends(get_current_user)):
+    try:
+        supabase.auth.sign_out()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to log out")
+    return None
