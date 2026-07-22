@@ -20,7 +20,16 @@ A simple RESTful CRUD API built using **FastAPI** that allows users to manage a 
 - FastAPI
 - Uvicorn
 - Pydantic
-- **SQLite3** (Built-in standard library)
+- **PostgreSQL** (Running via Docker)
+
+---
+
+## Running Postgres
+
+Run the following command to start the database:
+```bash
+docker run --name taskdb -e POSTGRES_PASSWORD=dev -e POSTGRES_DB=tasks -p 5432:5432 -v taskdata:/var/lib/postgresql/data -d postgres
+```
 
 ---
 
