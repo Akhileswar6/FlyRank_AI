@@ -1,118 +1,35 @@
-# Task API - Database Integration
+# Task API - Postgres + Docker Containerized
 
-A simple RESTful CRUD API built using **FastAPI** that allows users to manage a to-do list, now connected to a persistent **SQLite database**. This project was developed as part of the **FlyRank Backend Internship – Week 3 Assignment**.
+A simple RESTful CRUD API built using **FastAPI** that manages a to-do list, now powered by a **PostgreSQL database** running in a **Docker container**. This project is part of the **FlyRank Backend Internship – Week 3 Assignment (A3)**.
 
-## Features
-
-- Create a new task
-- View all tasks
-- View a task by ID
-- Update an existing task
-- Delete a task
-- Built-in Swagger UI for API testing
-- **Persistent Database Storage (SQLite)**: Data survives server restarts!
+## What is this?
+This project demonstrates how to package a Python API and its database into a shippable stack using Docker Compose. Instead of installing a database on your machine, it spins up a real PostgreSQL server in a container.
 
 ---
 
-## Tech Stack
+## Running the App
 
-- Python 3
-- FastAPI
-- Uvicorn
-- Pydantic
-- **PostgreSQL** (Running via Docker)
-
----
-
-## Running Postgres
-
-Run the following command to start the database:
+### 1. Setup Environment Variables
+Clone the repo and configure your `.env` file:
 ```bash
-docker run --name taskdb -e POSTGRES_PASSWORD=dev -e POSTGRES_DB=tasks -p 5432:5432 -v taskdata:/var/lib/postgresql/data -d postgres
+cp week3/.env.example week3/.env
 ```
+*(The `.env` file contains your database connection string and secrets, which are securely ignored by Git)*
 
----
-
-## Installation & Setup
-
-### 1. Clone the repository
-
+### 2. Start the Stack (One Command!)
+Run everything with Docker Compose:
 ```bash
-git clone https://github.com/Akhileswar6/FlyRank_AI.git
 cd week3
+docker compose up
 ```
 
-### 2. Create a virtual environment
+This will:
+- Download the official `postgres` image
+- Spin up the database and mount a persistent volume (`taskdata`)
+- Build the FastAPI app image from the `Dockerfile`
+- Connect them together on an internal network
 
-```bash
-python -m venv venv
-```
-
-### 3. Activate the virtual environment
-
-**Windows**
-
-```bash
-venv\Scripts\activate
-```
-
-**Mac/Linux**
-
-```bash
-source venv/bin/activate
-```
-
-### 4. Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 5. Run the application
-
-```bash
-uvicorn main:app --reload
-```
-
-Server will start at:
-
-```
-http://127.0.0.1:8000
-```
-*(The SQLite database `tasks.db` will be created automatically upon startup if it does not already exist!)*
-
----
-
-## Database Details
-
-### Why SQLite?
-SQLite was chosen because it is a lightweight, serverless database that stores all data in a single file on disk. This requires zero setup or installation compared to full database servers like PostgreSQL or MySQL.
-
-### Where is the database stored?
-The database is stored in a file named `tasks.db` within the `week3` directory. Because it's managed via `sqlite3` in Python, the file is automatically generated the first time the server spins up.
-
-### Database Screenshot
-Here is a view of our tasks directly from DB Browser for SQLite:
-
-![alt text](images/image.png)
-
-
-### Example SQL Query
-During Stage 4, this query was executed manually to list all tasks in the database:
-```sql
-SELECT * FROM tasks;
-```
-It instantly retrieved the 3 seeded tasks along with any new tasks added via the API!
-
----
-
-## Swagger Documentation
-
-Interactive API documentation:
-
-```
-http://127.0.0.1:8000/docs
-```
+The API will be available at: `http://127.0.0.1:3000`
 
 ---
 
@@ -120,59 +37,46 @@ http://127.0.0.1:8000/docs
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | / | API Information |
-| GET | /health | Health Check |
-| GET | /tasks | Get All Tasks |
-| GET | /tasks/{id} | Get Task by ID |
-| POST | /tasks | Create Task |
-| PUT | /tasks/{id} | Update Task |
-| DELETE | /tasks/{id} | Delete Task |
-| GET | /stats | Task Statistics |
+| GET | `/` | API Information |
+| GET | `/health` | Health Check |
+| GET | `/tasks` | Get All Tasks |
+| GET | `/tasks/{id}` | Get Task by ID |
+| POST | `/tasks` | Create Task |
+| PUT | `/tasks/{id}` | Update Task |
+| DELETE | `/tasks/{id}` | Delete Task |
+| GET | `/stats` | Task Statistics |
 
----
+### Testing with `curl`
 
-## Project Structure
-
-```
-task-api/
-│── week3/
-│   ├── main.py
-│   ├── database.py
-│   ├── requirements.txt
-│   ├── tasks.db (auto-generated)
-│   └── README.md
-```
-
----
-
-## Testing
-
-You can test the API using:
-
-- Swagger UI
-- Postman
-- curl
-
-Example:
-
+To fetch all tasks, run:
 ```bash
-curl -X GET http://127.0.0.1:8000/tasks
+curl -i http://localhost:3000/tasks
+```
+You should see output similar to this:
+```http
+HTTP/1.1 200 OK
+content-length: 98
+content-type: application/json
+server: uvicorn
+
+[{"id":1,"title":"Buy groceries","done":false},{"id":2,"title":"Finish assignment","done":false},{"id":3,"title":"Clean the room","done":true}]
 ```
 
 ---
 
-## Status Codes
+## Database Details
 
-| Code | Meaning |
-|------|---------|
-| 200 | OK |
-| 201 | Created |
-| 204 | No Content |
-| 400 | Bad Request |
-| 404 | Not Found |
+- **Engine:** PostgreSQL
+- **Persistence:** A Docker volume (`taskdata`) ensures that your rows survive container restarts.
+- **Seeding:** The database automatically creates the `tasks` table and seeds 3 initial tasks when it starts for the first time.
+
+### Screenshot
+*(Add a screenshot of your Postgres GUI, such as pgAdmin, DBeaver, or psql terminal here)*
 
 ---
 
-## Author
-
-Developed by **Akhil** as part of the **FlyRank Backend Internship – Week 3 Assignment**.
+## Swagger Documentation
+Interactive API documentation is available at:
+```
+http://127.0.0.1:3000/docs
+```

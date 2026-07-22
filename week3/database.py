@@ -1,5 +1,7 @@
 import os
+# pyrefly: ignore [missing-import]
 import psycopg
+# pyrefly: ignore [missing-import]
 from psycopg.rows import dict_row
 from dotenv import load_dotenv
 
